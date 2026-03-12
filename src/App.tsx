@@ -43,7 +43,6 @@ import AuthLayout from './components/layouts/AuthLayout'
 import ServiceLayout from './components/layouts/ServiceLayout'
 import MainPage from './pages/MainPage'
 import ProfilePage from './pages/ProfilePage'
-import KakaoCallbackPage from './pages/KakaoCallbackPage'
 import ProfileRegisterPage from './pages/ProfileRegisterPage'
 import RegistrationRoute from './components/routes/RegistrationRoute'
 
@@ -53,7 +52,6 @@ function App() {
       <Route element={<PublicOnlyRoute />}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/oauth/kakao/callback" element={<KakaoCallbackPage />} />
         </Route>
       </Route>
 
