@@ -1,34 +1,26 @@
 import SchoolAdd from '../components/ui/SchoolAdd'
 import favicon from '../assets/icons/jaewon-favicon.png'
 import style from './styles/ProfilePage.module.css'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getProfiles, postUserProfile } from '../api/profileEdit'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearAuthSession } from '../api/auth'
+import { clearAuthSession, readAuthSession } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+import { fetchMemberProfile, updateMemberProfile, upsertSchoolVerification } from '../api/profileEdit'
+import type { SchoolType, UpsertSchoolVerificationResult } from '../api/profileEdit'
 
-type ProfilePayload = {
+type ProfileForm = {
   name: string
   phone: string
   address: string
+}
+
+type ProfilePayload = ProfileForm & {
   profileImage: File | null
 }
 
 type SchoolPayload = {
-  elementary: {
-    region: string
-    name: string
-    graduationYear: number | null
-    certificate: File | null
-  }
-  middle: {
-    region: string
-    name: string
-    graduationYear: number | null
-    certificate: File | null
-  }
-  high: {
+  [key in SchoolType]: {
     region: string
     name: string
     graduationYear: number | null
@@ -39,38 +31,89 @@ type SchoolPayload = {
 function ProfilePage() {
   const navigate = useNavigate()
   const clearTokens = useAuthStore((state) => state.clearTokens)
-
-  const { data: members = [] } = useQuery({
-    queryKey: ['profileFetch'],
-    queryFn: getProfiles,
-  })
-
-  const currentMember = members[0]
   const queryClient = useQueryClient()
 
+  const [profileForm, setProfileForm] = useState<ProfileForm>({ name: '', phone: '', address: '' })
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState('')
+
   const profileMutation = useMutation({
-    mutationFn: async (payload: ProfilePayload) => {
-      return postUserProfile({
-        name: payload.name,
-        phone: payload.phone,
-        address: payload.address,
-        schools: [],
-      })
-    },
+    mutationFn: async (payload: ProfilePayload) => updateMemberProfile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileFetch'] })
+      setMessage('프로필 정보가 저장되었습니다.')
+    },
+    onError: (error) => {
+      setMessage(error instanceof Error ? error.message : '프로필 저장에 실패했습니다.')
     },
   })
 
   const schoolMutation = useMutation({
     mutationFn: async (payload: SchoolPayload) => {
-      await Promise.resolve()
-      return payload
+      const schoolTypes: SchoolType[] = ['elementary', 'middle', 'high']
+      const savedResults: UpsertSchoolVerificationResult[] = []
+
+      for (const type of schoolTypes) {
+        const school = payload[type]
+        const hasAnyInput = Boolean(school.region || school.name || school.graduationYear || school.certificate)
+        if (!hasAnyInput) {
+          continue
+        }
+
+        if (!school.region || !school.name || !school.graduationYear || !school.certificate) {
+          throw new Error('학교 정보를 입력한 항목은 소재지, 학교명, 졸업년도, 졸업증명서를 모두 입력해주세요.')
+        }
+
+        const result = await upsertSchoolVerification({
+          type,
+          region: school.region,
+          schoolName: school.name,
+          graduationYear: school.graduationYear,
+          certificate: school.certificate,
+        })
+
+        savedResults.push(result)
+      }
+
+      if (savedResults.length === 0) {
+        throw new Error('등록할 학교 정보를 먼저 입력해주세요.')
+      }
+
+      return savedResults
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ['SchoolUpdate'] })
+      const linkedCount = results.filter((item) => item.mode === 'linked-existing').length
+      const createdCount = results.filter((item) => item.mode === 'created-and-linked').length
+      setMessage(`학교 인증 저장 완료 (기존 학교 연결 ${linkedCount}건, 신규 생성 후 연결 ${createdCount}건)`)
+    },
+    onError: (error) => {
+      setMessage(error instanceof Error ? error.message : '학교 인증 저장에 실패했습니다.')
     },
   })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true)
+        const profile = await fetchMemberProfile()
+        const sessionName = readAuthSession()?.user.name ?? ''
+
+        setProfileForm({
+          name: profile.name || sessionName,
+          phone: profile.phone || '',
+          address: profile.address || '',
+        })
+      } catch {
+        const sessionName = readAuthSession()?.user.name ?? ''
+        setProfileForm({ name: sessionName, phone: '', address: '' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void loadProfile()
+  }, [])
 
   const getString = (formData: FormData, key: string) => String(formData.get(key) ?? '')
 
@@ -106,12 +149,14 @@ function ProfilePage() {
 
   const handleProfileSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
+    setMessage('')
+
     const formData = new FormData(e.currentTarget)
 
     const payload: ProfilePayload = {
-      name: getString(formData, 'name'),
-      phone: getString(formData, 'phone'),
-      address: getString(formData, 'address'),
+      name: profileForm.name,
+      phone: profileForm.phone,
+      address: profileForm.address,
       profileImage: getFile(formData, 'profileImage'),
     }
 
@@ -120,6 +165,7 @@ function ProfilePage() {
 
   const handleSchoolSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
+    setMessage('')
     const formData = new FormData(e.currentTarget)
 
     const payload: SchoolPayload = {
@@ -152,6 +198,10 @@ function ProfilePage() {
     navigate('/login', { replace: true })
   }
 
+  if (loading) {
+    return <div className={style.sectionDivider}>프로필 정보를 불러오는 중...</div>
+  }
+
   return (
     <div className="">
       <form onSubmit={handleProfileSubmit}>
@@ -174,7 +224,8 @@ function ProfilePage() {
                     id="name"
                     name="name"
                     placeholder="이름을 입력해주세요."
-                    defaultValue={currentMember?.name ?? ''}
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
                   />
                 </label>
               </div>
@@ -186,14 +237,9 @@ function ProfilePage() {
                     id="phone"
                     name="phone"
                     placeholder="전화번호를 입력해주세요."
-                    defaultValue={currentMember?.phone ?? ''}
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
                   />
-                </label>
-              </div>
-              <div>
-                <label>
-                  이메일 :
-                  <input type="email" id="email" name="email" placeholder="이메일을 입력해주세요." />
                 </label>
               </div>
               <div>
@@ -204,7 +250,8 @@ function ProfilePage() {
                     id="address"
                     name="address"
                     placeholder="지역을 입력해주세요."
-                    defaultValue={currentMember?.address ?? ''}
+                    value={profileForm.address}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, address: e.target.value }))}
                   />
                 </label>
               </div>
@@ -235,6 +282,8 @@ function ProfilePage() {
           </div>
         </section>
       </form>
+
+      {message && <section className={style.sectionDivider}>{message}</section>}
 
       <section className={style.sectionDivider}>
         <div className={style.sectionTitle}>계정</div>
