@@ -1,0 +1,71 @@
+.searchBox {
+  position: relative;
+}
+
+.input {
+  width: min(420px, 100%);
+  border: 1px solid #d8e2ee;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  color: #172033;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #5a7ca8;
+  box-shadow: 0 0 0 4px rgba(90, 124, 168, 0.12);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(420px, 100%);
+  border: 1px solid #d8e2ee;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 40px rgba(23, 32, 51, 0.12);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.stateRow {
+  padding: 14px 16px;
+  color: #5c6f87;
+}
+
+.option {
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+  cursor: pointer;
+}
+
+.option:last-child {
+  border-bottom: none;
+}
+
+.optionName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.optionMeta {
+  margin-top: 6px;
+  color: #5c6f87;
+  font-size: 14px;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: #e2ecf7;
+  color: #35567b;
+  font-size: 12px;
+  font-weight: 600;
+}

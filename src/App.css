@@ -1,0 +1,24 @@
+:root {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  color: #172033;
+  background: linear-gradient(180deg, #f4f7fb 0%, #eef3f7 100%);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.appMainLogin {
+  flex: 1;
+  display: grid;
+}

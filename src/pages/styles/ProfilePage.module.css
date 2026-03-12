@@ -1,0 +1,39 @@
+.sectionDivider {
+    border-width: 0px 0px 1px;
+    border-style: solid;
+    border-color: #dddddd;
+    margin: 5%;
+    padding: 0 16px;
+}
+
+.profileEdit {
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-bottom: 5vh;
+}
+
+.profilePhoto {
+    border-radius: 50%;
+    width: 100px;
+}
+
+.saveProfile {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    padding-left: 0;
+}
+
+.sectionTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 5%;
+}
+
+.profileDivider {
+    width: 30%;
+    justify-content: flex-start;
+}

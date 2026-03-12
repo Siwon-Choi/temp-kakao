@@ -1,0 +1,33 @@
+.schoolRow {
+    display: flex;
+    height: 30vh;
+}
+
+
+.left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.right {
+    flex: 1;
+}
+
+.schoolImage {
+    width: 100%;
+    height: 100%;
+}
+
+
+.info {
+    margin-top: auto;
+    text-align: left;
+    margin-left: 5%;
+}
+
+.register {
+    margin-top: auto;
+    text-align: right;
+}

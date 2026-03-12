@@ -1,0 +1,29 @@
+.header {
+  display: grid;
+  gap: 20px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(100, 141, 181, 0.18), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f5f9fd 100%);
+  border: 1px solid #dbe6f1;
+}
+
+.eyebrow {
+  color: #5a7ca8;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.description {
+  margin-top: 12px;
+  max-width: 720px;
+  color: #51657f;
+  line-height: 1.5;
+}
+
+.controls {
+  display: grid;
+  gap: 16px;
+}

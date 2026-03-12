@@ -1,0 +1,39 @@
+.LoginPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+}
+
+button {
+    cursor: pointer;
+}
+
+img {
+    width: 350px;
+}
+
+.LoginPageBasic {
+    width: 90%;
+    margin: 0 auto;
+    max-width: 130vh;
+    height: 100%;
+    text-align: center;
+    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.LoginPageText {
+    font-size: 32px;
+    line-height: 200%;
+    text-align: left;
+}
+
+.LoginButton {
+    text-align: left;
+    padding-left: 6px;
+    min-width: 90px;
+}
