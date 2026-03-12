@@ -97,16 +97,13 @@ function ProfilePage() {
       try {
         setLoading(true)
         const profile = await fetchMemberProfile()
-        const sessionName = readAuthSession()?.user.name ?? ''
-
         setProfileForm({
-          name: profile.name || sessionName,
-          phone: profile.phone || '',
-          address: profile.address || '',
+          name: profile.name,
+          phone: profile.phone,
+          address: profile.address,
         })
-      } catch {
-        const sessionName = readAuthSession()?.user.name ?? ''
-        setProfileForm({ name: sessionName, phone: '', address: '' })
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : '프로필 정보를 불러오지 못했습니다.')
       } finally {
         setLoading(false)
       }
