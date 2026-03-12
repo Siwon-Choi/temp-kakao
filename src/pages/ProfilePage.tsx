@@ -4,7 +4,7 @@ import style from './styles/ProfilePage.module.css'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearAuthSession } from '../api/auth'
+import { clearAuthSession, readAuthSession } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { fetchMemberProfile, updateMemberProfile, upsertSchoolVerification } from '../api/profileEdit'
 import type { SchoolType, UpsertSchoolVerificationResult } from '../api/profileEdit'
@@ -97,9 +97,16 @@ function ProfilePage() {
       try {
         setLoading(true)
         const profile = await fetchMemberProfile()
-        setProfileForm({ name: profile.name, phone: profile.phone, address: profile.address })
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : '프로필 정보를 불러오지 못했습니다.')
+        const sessionName = readAuthSession()?.user.name ?? ''
+
+        setProfileForm({
+          name: profile.name || sessionName,
+          phone: profile.phone || '',
+          address: profile.address || '',
+        })
+      } catch {
+        const sessionName = readAuthSession()?.user.name ?? ''
+        setProfileForm({ name: sessionName, phone: '', address: '' })
       } finally {
         setLoading(false)
       }
