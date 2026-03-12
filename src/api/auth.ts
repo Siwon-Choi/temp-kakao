@@ -1,36 +1,19 @@
-// import { apiRequest } from './client'
-// import type { OAuthLoginRequest, OAuthLoginResponse, OAuthProvider } from '../types/auth'
-
-// export const requestOAuthLogin = (provider: OAuthProvider, payload: OAuthLoginRequest) =>
-//   apiRequest<OAuthLoginResponse>(`/api/auth/oauth/${provider}`, {
-//     method: 'POST',
-//     body: JSON.stringify(payload),
-//   })
-
-export type OAuthProvider = 'kakao'
-
-export type OAuthRequest = {
-  code: string
-  redirectUri: string
-}
-
-export type OAuthUser = {
-  oauthId: string
-  provider: OAuthProvider
+export type SessionUser = {
+  userId: string
   email: string
   name: string
   isRegistered: boolean
 }
 
-export type OAuthResponse = {
+export type SessionResponse = {
   accessToken: string
   refreshToken: string
   expiresIn: number
   tokenType: 'Bearer'
-  user: OAuthUser
+  user: SessionUser
 }
 
-export type AuthSession = OAuthResponse
+export type AuthSession = SessionResponse
 
 export type AuthMeResponse =
   | {
@@ -41,22 +24,25 @@ export type AuthMeResponse =
   | {
       authenticated: true
       isRegistered: boolean
-      user: OAuthUser
+      user: SessionUser
     }
 
-const AUTH_SESSION_KEY = 'auth.session'
+export type SessionLoginRole = 'existing' | 'new'
 
-const KAKAO_EXISTING_USER_CODE = 'kakao-existing-user'
-const KAKAO_NEW_USER_CODE = 'kakao-new-user'
+export type SessionLoginRequest = {
+  role: SessionLoginRole
+}
+
+const AUTH_SESSION_KEY = 'auth.session'
 
 function wait(ms = 300) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export async function requestOAuthLogin(provider: OAuthProvider, request: OAuthRequest): Promise<OAuthResponse> {
+export async function requestSessionLogin(request: SessionLoginRequest): Promise<SessionResponse> {
   await wait()
 
-  const isRegistered = request.code === KAKAO_EXISTING_USER_CODE
+  const isRegistered = request.role === 'existing'
   const timestamp = Date.now().toString(36)
 
   return {
@@ -65,8 +51,7 @@ export async function requestOAuthLogin(provider: OAuthProvider, request: OAuthR
     expiresIn: 3600,
     tokenType: 'Bearer',
     user: {
-      oauthId: `oauth-${provider}-${timestamp}`,
-      provider,
+      userId: `session-user-${timestamp}`,
       email: isRegistered ? 'registered@recall.kr' : 'new-user@recall.kr',
       name: isRegistered ? '기존 회원' : '신규 회원',
       isRegistered,
@@ -124,8 +109,6 @@ export function markUserRegistered(session: AuthSession): AuthSession {
   return nextSession
 }
 
-
-
 export type UserSignupRequest = {
   email: string
   name: string
@@ -153,5 +136,3 @@ export async function requestUserSignup(payload: UserSignupRequest, accessToken:
     throw new Error(text || `회원가입 API 요청이 실패했습니다. (${response.status})`)
   }
 }
-export const MOCK_EXISTING_USER_CODE = KAKAO_EXISTING_USER_CODE
-export const MOCK_NEW_USER_CODE = KAKAO_NEW_USER_CODE
